@@ -1,6 +1,6 @@
 # Fontes das coordenadas das prefeituras
 
-Consulta: **10/11/2026**. As coordenadas estão em WGS84 (latitude, longitude). Para os registros OSM do tipo `way`, foi usado o centro indicado pelo Nominatim para o prédio; isso não define a porta de entrada. Cada link de busca abaixo foi consultado individualmente. O link do registro OSM identifica o objeto retornado nessa consulta. A correspondência com os 20 municípios foi conferida contra os [limites municipais da Universidade do Egeu](https://sdi-portal.aegean.gr/arcgis/rest/services/apat_HerSea/08_Administrative_Boundaries3/MapServer/5).
+As coordenadas estão em WGS84 (latitude, longitude). Para os registros OSM do tipo `way`, foi usado o centro indicado pelo Nominatim para o prédio; isso não define a porta de entrada. Cada link de busca abaixo foi consultado individualmente. O link do registro OSM identifica o objeto retornado nessa consulta. A correspondência com os 20 municípios foi conferida contra os [limites municipais da Universidade do Egeu](https://sdi-portal.aegean.gr/arcgis/rest/services/apat_HerSea/08_Administrative_Boundaries3/MapServer/5).
 
 **Critério:** uma prefeitura (sede municipal) por município. Em municípios formados pela fusão de localidades, foi escolhida a sede do município atual, não cada antiga prefeitura. As distâncias do estudo continuam sendo Haversine em linha geográfica, não percursos pelas ruas.
 
