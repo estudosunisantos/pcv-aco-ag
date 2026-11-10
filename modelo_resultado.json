@@ -1,0 +1,12 @@
+{
+  "instrucoes": "MODELO: preencher com uma execução real. Não representa resultado medido.",
+  "algoritmo": "PREENCHER",
+  "n": 20,
+  "matriz_sha256": "caaecf3f24f62b7f3bec30242b9c546dc94a9638eae41e49047e82b858ecaa5e",
+  "rota_ids": [],
+  "distancia_km": null,
+  "tempo_segundos": null,
+  "semente": null,
+  "parametros": {},
+  "ambiente": {}
+}
