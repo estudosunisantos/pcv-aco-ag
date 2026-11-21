@@ -1,0 +1,29 @@
+
+name: Testar Algoritmo Genetico
+
+on:
+  push:
+    branches:
+      - graziela-ag
+
+permissions:
+  contents: read
+
+jobs:
+  testar-ag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar NumPy
+        run: python -m pip install numpy
+
+      - name: Executar Algoritmo Genetico
+        run: python -m pcv.algoritmo_genetico
