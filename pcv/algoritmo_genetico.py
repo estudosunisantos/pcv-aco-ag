@@ -164,10 +164,10 @@ if __name__ == "__main__":
         "n": qtd_cidades,
         "matriz_sha256": matriz_sha256,
         "rota_ids": rota_ids,
-        "distância_km": float(menor_distancia),
+        "distancia_km": float(menor_distancia),
         "tempo_segundos": tempo_segundos,
         "semente": semente,
-        "parâmetros": {
+        "parametros": {
             "populacao": tamanho,
             "geracoes": geracoes,
             "taxa_cruzamento": taxa_cruzamento,
