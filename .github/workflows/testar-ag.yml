@@ -27,3 +27,14 @@ jobs:
 
       - name: Executar Algoritmo Genetico
         run: python -m pcv.algoritmo_genetico
+
+      - name: Validar resultado
+        run: python -m pcv.validar_resultado resultados/ag_15_prefeituras.json
+
+      - name: Disponibilizar JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-ag-15-cidades
+          path: resultados/ag_15_prefeituras.json
+          if-no-files-found: error
