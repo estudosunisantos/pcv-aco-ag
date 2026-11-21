@@ -62,10 +62,12 @@ O primeiro comando compara a matriz com as coordenadas sem gravar arquivos. O se
 
 ```bash
 python3 -m pcv.forca_bruta --n 10 --saida resultados/meu_teste_10.json
-python3 -m pcv.forca_bruta --n 20 --segundos 30 --saida resultados/meu_teste_20_parcial.json
+python3 -m pcv.forca_bruta --n 15 --saida resultados/forca_bruta_15.json
 ```
 
-O primeiro comando pode concluir o subconjunto de 10 pontos. O segundo interrompe a busca de 20 pontos após o limite solicitado e produz apenas um **resultado parcial**. Uma busca exaustiva completa para 20 pontos exigiria avaliar `19!/2 = 60.822.550.204.416.000` ciclos únicos, o que é impraticável em tempo usual. O programa protege arquivos existentes; use outro `--saida` ou `--sobrescrever` se quiser substituí-los.
+Os comandos enumeram todos os ciclos únicos dos primeiros 10 ou 15 IDs, sem limite de tempo e sem podas. Para 15 pontos são `14!/2 = 43.589.145.600` ciclos; para 20, `19!/2 = 60.822.550.204.416.000`. O JSON é salvo ao concluir; sem `--saida`, usa `resultados/forca_bruta_N.json`. Arquivos existentes são protegidos; use outro nome ou `--sobrescrever`. Ainda não há checkpoint: uma interrupção perde o progresso da busca.
+
+Para comparar com a execução de 15 municípios, todos os métodos devem usar `carregar(15)` e a mesma matriz.
 
 O arquivo [`resultados/forca_bruta_10_prefeituras.json`](resultados/forca_bruta_10_prefeituras.json) é uma execução completa somente dos IDs 1 a 10 da base atual. Seu custo não é comparável ao custo de uma rota de 20 pontos. Resultados produzidos com coordenadas anteriores também não devem ser misturados com a matriz atual.
 

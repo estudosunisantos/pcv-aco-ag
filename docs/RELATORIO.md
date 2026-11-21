@@ -38,3 +38,5 @@ Qualquer mudança nas coordenadas exige regenerar a matriz, o mapa e os resultad
 A busca exaustiva da nova base para os IDs 1 a 10 está em `resultados/forca_bruta_10_prefeituras.json`.
 
 Para comparar meta-heurísticas, use sempre `carregar(20)` na mesma revisão da matriz, registre a semente, os parâmetros, o equipamento e o tempo, e valide cada rota com `python3 -m pcv.validar_resultado`. Execute métodos estocásticos várias vezes nas mesmas condições, reporte melhor valor, média, dispersão e tempo.
+
+A próxima execução por força bruta usará os IDs 1 a 15 (`carregar(15)`). O ótimo desse subconjunto só será declarado após concluir todos os ciclos; as meta-heurísticas devem usar o mesmo subconjunto para comparação.
