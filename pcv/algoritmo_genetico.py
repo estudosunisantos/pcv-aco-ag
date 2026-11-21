@@ -1,9 +1,14 @@
+
+import json
+import platform
+import time
+from pathlib import Path
+
 import numpy as np
 from .base import carregar, avaliar_rota
 
 
 # 1. Criar a população inicial
-# Cada linha representa uma rota; a cidade 1 fica na primeira coluna.
 def criar_populacao(qtd_cidades, tamanho):
     populacao = np.zeros((tamanho, qtd_cidades), dtype=int)
 
@@ -23,7 +28,7 @@ def avaliar_populacao(populacao, matriz):
 
     for i in range(len(populacao)):
         rota = populacao[i].tolist()
-        rota_fechada = rota + [rota[0]]  # Voltar à cidade 1
+        rota_fechada = rota + [rota[0]]
         custos[i] = avaliar_rota(matriz, rota_fechada)
 
     return custos
@@ -31,12 +36,16 @@ def avaliar_populacao(populacao, matriz):
 
 # 3. Selecionar uma rota por torneio
 def selecionar_rota(populacao, custos):
-    candidatos = np.random.choice(len(populacao), 3, replace=False)
+    candidatos = np.random.choice(
+        len(populacao), 3, replace=False
+    )
+
     melhor = candidatos[np.argmin(custos[candidatos])]
+
     return populacao[melhor].copy()
 
 
-# 4. Cruzar duas rotas (OX)
+# 4. Cruzamento OX
 def cruzar_rotas(rota1, rota2):
     qtd = len(rota1)
 
@@ -46,12 +55,14 @@ def cruzar_rotas(rota1, rota2):
 
     nova_rota = np.zeros(qtd, dtype=int)
     nova_rota[0] = 1
+
     nova_rota[inicio:fim + 1] = rota1[inicio:fim + 1]
 
     ordem = np.concatenate((
         rota2[fim + 1:],
         rota2[1:fim + 1]
     ))
+
     posicoes = list(range(fim + 1, qtd)) + list(range(1, inicio))
 
     for cidade in ordem:
@@ -62,7 +73,7 @@ def cruzar_rotas(rota1, rota2):
     return nova_rota
 
 
-# 5. Mutar uma rota, trocando duas cidades de posição
+# 5. Mutação
 def mutar_rota(rota):
     nova_rota = rota.copy()
 
@@ -80,25 +91,30 @@ def mutar_rota(rota):
 # 6. Executar o Algoritmo Genético
 def executar_ag(matriz, qtd_cidades, tamanho, geracoes,
                 taxa_cruzamento, taxa_mutacao):
+
     populacao = criar_populacao(qtd_cidades, tamanho)
 
     for geracao in range(geracoes):
         custos = avaliar_populacao(populacao, matriz)
+
         nova_populacao = np.zeros_like(populacao)
 
-        # Elitismo: guardar a rota mais curta sem alterá-la.
+        # Elitismo: preservar a melhor rota
         melhor = np.argmin(custos)
         nova_populacao[0] = populacao[melhor].copy()
 
+        # Criar as novas rotas
         for i in range(1, tamanho):
             rota1 = selecionar_rota(populacao, custos)
             rota2 = selecionar_rota(populacao, custos)
 
             nova_rota = rota1.copy()
 
+            # Cruzamento
             if np.random.random() < taxa_cruzamento:
                 nova_rota = cruzar_rotas(rota1, rota2)
 
+            # Mutação
             if np.random.random() < taxa_mutacao:
                 nova_rota = mutar_rota(nova_rota)
 
@@ -106,8 +122,10 @@ def executar_ag(matriz, qtd_cidades, tamanho, geracoes,
 
         populacao = nova_populacao
 
+    # Identificar a melhor rota
     custos = avaliar_populacao(populacao, matriz)
     melhor = np.argmin(custos)
+
     return populacao[melhor], custos[melhor]
 
 
@@ -118,16 +136,60 @@ if __name__ == "__main__":
     geracoes = 200
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.1
+    semente = 42
 
-    # A função carregar devolve matriz E identificação SHA-256.
+    np.random.seed(semente)
+
     matriz, matriz_sha256 = carregar(qtd_cidades)
+
+    inicio = time.perf_counter()
 
     melhor_rota, menor_distancia = executar_ag(
         matriz, qtd_cidades, tamanho, geracoes,
         taxa_cruzamento, taxa_mutacao
     )
 
-    rota_com_retorno = melhor_rota.tolist() + [int(melhor_rota[0])]
-    print("Melhor rota:", rota_com_retorno)
+    tempo_segundos = time.perf_counter() - inicio
+
+    # Adicionar o retorno à cidade inicial
+    rota_ids = [int(cidade) for cidade in melhor_rota]
+    rota_ids.append(rota_ids[0])
+
+    # Verificar se todas as cidades foram visitadas
+    assert sorted(rota_ids[:-1]) == list(range(1, qtd_cidades + 1))
+
+    # Preparar resultado em JSON
+    resultado = {
+        "algoritmo": "AG",
+        "n": qtd_cidades,
+        "matriz_sha256": matriz_sha256,
+        "rota_ids": rota_ids,
+        "distância_km": float(menor_distancia),
+        "tempo_segundos": tempo_segundos,
+        "semente": semente,
+        "parâmetros": {
+            "populacao": tamanho,
+            "geracoes": geracoes,
+            "taxa_cruzamento": taxa_cruzamento,
+            "taxa_mutacao": taxa_mutacao
+        },
+        "ambiente": {
+            "python": platform.python_version(),
+            "numpy": np.__version__
+        }
+    }
+
+    # Salvar o resultado
+    pasta_resultados = Path(__file__).resolve().parent.parent / "resultados"
+    pasta_resultados.mkdir(exist_ok=True)
+
+    caminho = pasta_resultados / "ag_15_prefeituras.json"
+
+    with caminho.open("w", encoding="utf-8") as arquivo:
+        json.dump(resultado, arquivo, ensure_ascii=False, indent=2)
+
+    print("Melhor rota:", rota_ids)
     print("Menor distância (km):", menor_distancia)
     print("SHA-256 da matriz:", matriz_sha256)
+    print("Tempo (s):", tempo_segundos)
+    print("Resultado salvo em:", caminho)
