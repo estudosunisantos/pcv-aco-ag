@@ -55,7 +55,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoEncoder(cities=CIDADES, hs=64)
 model.load_state_dict(torch.load("autoencoder_aco.pt", map_location=device))
 model.eval()
-best_route_bf=[0,2,7,13,14,13,12,9,10,8,4,6,1,5,3,0]
+best_route_bf=[0,2,7,11,14,13,12,9,10,8,4,6,1,5,3,0]
+best_route_rf_var=[4,6,1,5,3,0,2,7,11,14,13,12,9,10,8,4]
 stop=0
 def prox_cidade(_atual, _tour):
     candidatos = [c for c in range(CIDADES) if not np.any(_tour == c)]
@@ -63,7 +64,7 @@ def prox_cidade(_atual, _tour):
         return _atual
 
     pesos = np.array([
-        (1.0 / distancia_cidades[_atual][c]) * feromonios[_atual][c] * (A * B)
+        (feromonios[_atual][c] ** A) * ((1.0 / distancia_cidades[_atual][c]) ** B)
         for c in candidatos
     ], dtype=float)
 
@@ -80,13 +81,13 @@ def custos_tours():
     global melhor_agente
     global stop
     custos.fill(0)
-    for f in range(CIDADES):
+    for f in range(AGENTES):
         for a in range(CIDADES):
             if((a+1) <= CIDADES):
                 custos[f] = custos[f] + distancia_cidades[tours[f][a].astype(int)][tours[f][a+1].astype(int)]
     melhor_agente = -1
     aux = 0
-    for a in range(CIDADES):
+    for a in range(AGENTES):
         qtde_feromonio[a] = Q / custos[a]
         if(aux == 0):
             aux = custos[a] 
@@ -97,8 +98,8 @@ def custos_tours():
                 melhor_agente = a
     rota = tours[melhor_agente].astype(int)
     print(f"Rota atual: {rota}")
-    print(f"Melhor rota: {best_route_bf}")
-    if np.array_equal(rota, best_route_bf) or np.array_equal(rota, best_route_bf[::-1]):
+    print(f"Melhor rota: {best_route_rf_var}")
+    if np.array_equal(rota, best_route_rf_var) or np.array_equal(rota, best_route_rf_var[::-1]):
         stop=1
         print(rota)
         caminho_str = " -> ".join(str(c) for c in rota)
@@ -144,22 +145,20 @@ def atualiza_feromonio():
                     feromonios[u][v] += qtde_feromonio[a]
                     feromonios[v][u] += qtde_feromonio[a]
 iterations=0
-k=0
 while stop==0:
     iterations+=1
     print(f"Iteração: {iterations}")
     tours.fill(-1)
     np.random.shuffle(inicio)
-    for f in range(AGENTES):       
-        k=k+1 if k+1<CIDADES else 1
+    for f in range(AGENTES):
         t = 0
-        tours[f][t] = inicio[k]
+        tours[f][t] = inicio[f % CIDADES]
         while(True):
             t = t+1
             if(t < CIDADES):
                 tours[f][t] = prox_cidade(tours[f][t-1].astype(int), tours[f])
             else:
-                tours[f][t] = inicio[k]
+                tours[f][t] = inicio[f % CIDADES]
                 break
     custos_tours()
     atualiza_feromonio()
