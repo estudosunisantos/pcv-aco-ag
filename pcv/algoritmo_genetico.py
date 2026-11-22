@@ -190,10 +190,10 @@ def executar_ag(
 if __name__ == "__main__":
 
     qtd_cidades = 15
-    tamanho = 100
+    tamanho = 200
     max_geracoes = 10000
     taxa_cruzamento = 0.8
-    taxa_mutacao = 0.1
+    taxa_mutacao = 0.2
 
     # Semente restaurada
     semente = 42
