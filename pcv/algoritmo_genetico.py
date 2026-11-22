@@ -110,7 +110,8 @@ def executar_ag(
     tamanho,
     max_geracoes,
     taxa_cruzamento,
-    taxa_mutacao
+    taxa_mutacao,
+    taxa_elitismo
 ):
 
     populacao = criar_populacao(qtd_cidades, tamanho)
@@ -119,8 +120,14 @@ def executar_ag(
     distancia_ag = float("inf")
     geracao = 0
 
-    # WHILE: continuar até alcançar a distância da
-    # Força Bruta ou atingir o limite de gerações
+    # Quantidade de cromossomos preservados
+    qtd_elite = int(tamanho * taxa_elitismo)
+
+    print("Taxa de elitismo:", taxa_elitismo)
+    print("Cromossomos preservados:", qtd_elite)
+
+    # WHILE: continuar até encontrar a distância
+    # da Força Bruta ou atingir o limite de gerações
     while (
         distancia_ag > DISTANCIA_FORCA_BRUTA + TOLERANCIA
         and geracao < max_geracoes
@@ -152,7 +159,7 @@ def executar_ag(
                 f"Força Bruta: {DISTANCIA_FORCA_BRUTA:.9f} km"
             )
 
-        # Verificar se encontrou a solução ótima
+        # Verificar se encontrou a distância ótima
         if distancia_ag <= DISTANCIA_FORCA_BRUTA + TOLERANCIA:
             print("Distância ótima encontrada!")
             break
@@ -160,18 +167,24 @@ def executar_ag(
         # Criar a próxima população
         nova_populacao = np.zeros_like(populacao)
 
-        # Elitismo: preservar a melhor rota
-        nova_populacao[0] = melhor_rota.copy()
+        # ELITISMO DE 20%
+        # Selecionar os 40 melhores cromossomos
+        indices_elite = np.argsort(custos)[:qtd_elite]
 
-        # Criar novas rotas
-        for i in range(1, tamanho):
+        # Preservar os 40 melhores sem alterações
+        nova_populacao[:qtd_elite] = (
+            populacao[indices_elite].copy()
+        )
+
+        # Criar os outros 160 cromossomos
+        for i in range(qtd_elite, tamanho):
 
             rota1 = selecionar_rota(populacao, custos)
             rota2 = selecionar_rota(populacao, custos)
 
             nova_rota = rota1.copy()
 
-            # Cruzamento
+            # Cruzamento OX
             if np.random.random() < taxa_cruzamento:
                 nova_rota = cruzar_rotas(rota1, rota2)
 
@@ -194,10 +207,7 @@ if __name__ == "__main__":
     max_geracoes = 10000
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.2
-
-    # Semente restaurada
-    semente = 42
-    np.random.seed(semente)
+    taxa_elitismo = 0.20
 
     matriz, matriz_sha256 = carregar(qtd_cidades)
 
@@ -226,7 +236,7 @@ if __name__ == "__main__":
     print("Máximo de gerações:", max_geracoes)
     print("Taxa de cruzamento:", taxa_cruzamento)
     print("Taxa de mutação:", taxa_mutacao)
-    print("Semente:", semente)
+    print("Taxa de elitismo:", taxa_elitismo)
     print("Distância da Força Bruta:", DISTANCIA_FORCA_BRUTA)
 
     inicio = time.perf_counter()
@@ -237,7 +247,8 @@ if __name__ == "__main__":
         tamanho,
         max_geracoes,
         taxa_cruzamento,
-        taxa_mutacao
+        taxa_mutacao,
+        taxa_elitismo
     )
 
     tempo_segundos = time.perf_counter() - inicio
@@ -274,12 +285,15 @@ if __name__ == "__main__":
         "geracoes_executadas": geracoes_executadas,
         "motivo_parada": motivo_parada,
         "tempo_segundos": tempo_segundos,
-        "semente": semente,
         "parametros": {
             "populacao": tamanho,
             "max_geracoes": max_geracoes,
             "taxa_cruzamento": taxa_cruzamento,
-            "taxa_mutacao": taxa_mutacao
+            "taxa_mutacao": taxa_mutacao,
+            "taxa_elitismo": taxa_elitismo,
+            "cromossomos_preservados": int(
+                tamanho * taxa_elitismo
+            )
         },
         "ambiente": {
             "python": platform.python_version(),
@@ -311,7 +325,8 @@ if __name__ == "__main__":
     print("Encontrou a distância ótima:", encontrou_otimo)
     print("Gerações executadas:", geracoes_executadas)
     print("Motivo da parada:", motivo_parada)
-    print("Semente:", semente)
+    print("Taxa de elitismo:", taxa_elitismo)
+    print("Cromossomos preservados:", int(tamanho * taxa_elitismo))
     print("SHA-256 da matriz:", matriz_sha256)
     print("Tempo (s):", tempo_segundos)
     print("Resultado salvo em:", caminho)
