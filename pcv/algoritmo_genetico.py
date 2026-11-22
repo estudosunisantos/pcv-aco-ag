@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
     qtd_cidades = 15
     tamanho = 200
-    max_geracoes = 10000
+    max_geracoes = 2000
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.2
     taxa_elitismo = 0.20
