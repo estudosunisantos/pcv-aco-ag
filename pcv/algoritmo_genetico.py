@@ -8,8 +8,7 @@ import numpy as np
 from .base import carregar, avaliar_rota
 
 
-# Resultado encontrado pela Força Bruta
-# Variável global para comparação
+# Distância ótima encontrada pela Força Bruta
 DISTANCIA_FORCA_BRUTA = 42.820174902
 
 ROTA_FORCA_BRUTA = [
@@ -120,8 +119,8 @@ def executar_ag(
     distancia_ag = float("inf")
     geracao = 0
 
-    # WHILE: continuar até alcançar a distância
-    # encontrada pela Força Bruta
+    # WHILE: continuar até alcançar a distância da
+    # Força Bruta ou atingir o limite de gerações
     while (
         distancia_ag > DISTANCIA_FORCA_BRUTA + TOLERANCIA
         and geracao < max_geracoes
@@ -131,7 +130,6 @@ def executar_ag(
 
         custos = avaliar_populacao(populacao, matriz)
 
-        # Identificar a melhor rota da geração
         melhor = np.argmin(custos)
         distancia_atual = float(custos[melhor])
 
@@ -154,14 +152,9 @@ def executar_ag(
                 f"Força Bruta: {DISTANCIA_FORCA_BRUTA:.9f} km"
             )
 
-        # Se encontrou a distância da força bruta,
-        # sair do while
+        # Verificar se encontrou a solução ótima
         if distancia_ag <= DISTANCIA_FORCA_BRUTA + TOLERANCIA:
-            print("Distância da Força Bruta alcançada!")
-            break
-
-        # Limite de segurança
-        if geracao >= max_geracoes:
+            print("Distância ótima encontrada!")
             break
 
         # Criar a próxima população
@@ -202,10 +195,14 @@ if __name__ == "__main__":
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.1
 
+    # Semente restaurada
+    semente = 42
+    np.random.seed(semente)
+
     matriz, matriz_sha256 = carregar(qtd_cidades)
 
-    # Conferir se a força bruta e o AG
-    # estão usando a mesma matriz de distâncias
+    # Verificar a distância da Força Bruta
+    # utilizando a mesma matriz do AG
     distancia_verificada = avaliar_rota(
         matriz, ROTA_FORCA_BRUTA
     )
@@ -217,18 +214,19 @@ if __name__ == "__main__":
         atol=0.00001
     ):
         raise ValueError(
-            "A distância da rota da Força Bruta não "
-            "corresponde à matriz carregada pelo AG. "
+            "A distância da Força Bruta não corresponde "
+            "à matriz utilizada pelo AG. "
             f"Esperado: {DISTANCIA_FORCA_BRUTA}. "
-            f"Calculado: {distancia_verificada}. "
-            "Verifique se os dois algoritmos usam "
-            "a mesma matriz de cidades."
+            f"Calculado: {distancia_verificada}."
         )
 
     print("Iniciando Algoritmo Genético...")
-    print("Cidades:", qtd_cidades)
+    print("Quantidade de cidades:", qtd_cidades)
     print("População:", tamanho)
     print("Máximo de gerações:", max_geracoes)
+    print("Taxa de cruzamento:", taxa_cruzamento)
+    print("Taxa de mutação:", taxa_mutacao)
+    print("Semente:", semente)
     print("Distância da Força Bruta:", DISTANCIA_FORCA_BRUTA)
 
     inicio = time.perf_counter()
@@ -253,7 +251,7 @@ if __name__ == "__main__":
         range(1, qtd_cidades + 1)
     )
 
-    # Verificar se alcançou a distância da Força Bruta
+    # Verificar se alcançou a distância ótima
     encontrou_otimo = (
         menor_distancia <=
         DISTANCIA_FORCA_BRUTA + TOLERANCIA
@@ -276,6 +274,7 @@ if __name__ == "__main__":
         "geracoes_executadas": geracoes_executadas,
         "motivo_parada": motivo_parada,
         "tempo_segundos": tempo_segundos,
+        "semente": semente,
         "parametros": {
             "populacao": tamanho,
             "max_geracoes": max_geracoes,
@@ -312,6 +311,7 @@ if __name__ == "__main__":
     print("Encontrou a distância ótima:", encontrou_otimo)
     print("Gerações executadas:", geracoes_executadas)
     print("Motivo da parada:", motivo_parada)
+    print("Semente:", semente)
     print("SHA-256 da matriz:", matriz_sha256)
     print("Tempo (s):", tempo_segundos)
     print("Resultado salvo em:", caminho)
