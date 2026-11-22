@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 class AutoEncoder(Module):
-    def __init__(self,cities=20,hs=64):
+    def __init__(self,cities=15,hs=64):
         super(AutoEncoder,self).__init__()
         self.encoder=LSTM(cities,hs,batch_first=True)
         self.attention=Linear(hs,1)
@@ -28,7 +28,7 @@ class AutoEncoder(Module):
 
 
 
-def train_model(paths, epochs=1000, lr=1e-3, cities=20, hs=64, save_path="autoencoder_aco.pt",loss_plot_path="loss_curve.png"):
+def train_model(paths, epochs=1000, lr=1e-3, cities=15, hs=64, save_path="autoencoder_aco.pt",loss_plot_path="loss_curve.png"):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     X = torch.stack(paths)
     Y = X.argmax(dim=-1).long()
