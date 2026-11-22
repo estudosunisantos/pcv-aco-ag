@@ -8,6 +8,18 @@ import numpy as np
 from .base import carregar, avaliar_rota
 
 
+# Resultado encontrado pela Força Bruta
+# Variável global para comparação
+DISTANCIA_FORCA_BRUTA = 42.820174902
+
+ROTA_FORCA_BRUTA = [
+    1, 3, 8, 12, 15, 14, 13, 10,
+    11, 9, 5, 7, 2, 6, 4, 1
+]
+
+TOLERANCIA = 1e-8
+
+
 # 1. Criar a população inicial
 def criar_populacao(qtd_cidades, tamanho):
     populacao = np.zeros((tamanho, qtd_cidades), dtype=int)
@@ -29,6 +41,7 @@ def avaliar_populacao(populacao, matriz):
     for i in range(len(populacao)):
         rota = populacao[i].tolist()
         rota_fechada = rota + [rota[0]]
+
         custos[i] = avaliar_rota(matriz, rota_fechada)
 
     return custos
@@ -63,7 +76,10 @@ def cruzar_rotas(rota1, rota2):
         rota2[1:fim + 1]
     ))
 
-    posicoes = list(range(fim + 1, qtd)) + list(range(1, inicio))
+    posicoes = (
+        list(range(fim + 1, qtd))
+        + list(range(1, inicio))
+    )
 
     for cidade in ordem:
         if cidade not in nova_rota:
@@ -89,22 +105,74 @@ def mutar_rota(rota):
 
 
 # 6. Executar o Algoritmo Genético
-def executar_ag(matriz, qtd_cidades, tamanho, geracoes,
-                taxa_cruzamento, taxa_mutacao):
+def executar_ag(
+    matriz,
+    qtd_cidades,
+    tamanho,
+    max_geracoes,
+    taxa_cruzamento,
+    taxa_mutacao
+):
 
     populacao = criar_populacao(qtd_cidades, tamanho)
 
-    for geracao in range(geracoes):
+    melhor_rota = None
+    distancia_ag = float("inf")
+    geracao = 0
+
+    # WHILE: continuar até alcançar a distância
+    # encontrada pela Força Bruta
+    while (
+        distancia_ag > DISTANCIA_FORCA_BRUTA + TOLERANCIA
+        and geracao < max_geracoes
+    ):
+
+        geracao += 1
+
         custos = avaliar_populacao(populacao, matriz)
 
+        # Identificar a melhor rota da geração
+        melhor = np.argmin(custos)
+        distancia_atual = float(custos[melhor])
+
+        # Atualizar a melhor solução encontrada
+        if distancia_atual < distancia_ag:
+            distancia_ag = distancia_atual
+            melhor_rota = populacao[melhor].copy()
+
+            print(
+                f"Geração {geracao}: "
+                f"Nova melhor distância = "
+                f"{distancia_ag:.9f} km"
+            )
+
+        # Mostrar progresso a cada 100 gerações
+        if geracao % 100 == 0:
+            print(
+                f"Geração {geracao} | "
+                f"Melhor distância AG: {distancia_ag:.9f} km | "
+                f"Força Bruta: {DISTANCIA_FORCA_BRUTA:.9f} km"
+            )
+
+        # Se encontrou a distância da força bruta,
+        # sair do while
+        if distancia_ag <= DISTANCIA_FORCA_BRUTA + TOLERANCIA:
+            print("Distância da Força Bruta alcançada!")
+            break
+
+        # Limite de segurança
+        if geracao >= max_geracoes:
+            break
+
+        # Criar a próxima população
         nova_populacao = np.zeros_like(populacao)
 
         # Elitismo: preservar a melhor rota
-        melhor = np.argmin(custos)
-        nova_populacao[0] = populacao[melhor].copy()
+        nova_populacao[0] = melhor_rota.copy()
 
-        # Criar as novas rotas
+        # Criar novas rotas
         for i in range(1, tamanho):
+
             rota1 = selecionar_rota(populacao, custos)
             rota2 = selecionar_rota(populacao, custos)
 
@@ -122,42 +190,79 @@ def executar_ag(matriz, qtd_cidades, tamanho, geracoes,
 
         populacao = nova_populacao
 
-    # Identificar a melhor rota
-    custos = avaliar_populacao(populacao, matriz)
-    melhor = np.argmin(custos)
-
-    return populacao[melhor], custos[melhor]
+    return melhor_rota, distancia_ag, geracao
 
 
 # 7. Programa principal
 if __name__ == "__main__":
+
     qtd_cidades = 15
     tamanho = 100
-    geracoes = 2000
+    max_geracoes = 10000
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.1
-    semente = 42
-
-    np.random.seed(semente)
-    print("GERAÇÕES EXECUTADAS:", geracoes)
 
     matriz, matriz_sha256 = carregar(qtd_cidades)
 
+    # Conferir se a força bruta e o AG
+    # estão usando a mesma matriz de distâncias
+    distancia_verificada = avaliar_rota(
+        matriz, ROTA_FORCA_BRUTA
+    )
+
+    if not np.isclose(
+        distancia_verificada,
+        DISTANCIA_FORCA_BRUTA,
+        rtol=0,
+        atol=0.00001
+    ):
+        raise ValueError(
+            "A distância da rota da Força Bruta não "
+            "corresponde à matriz carregada pelo AG. "
+            f"Esperado: {DISTANCIA_FORCA_BRUTA}. "
+            f"Calculado: {distancia_verificada}. "
+            "Verifique se os dois algoritmos usam "
+            "a mesma matriz de cidades."
+        )
+
+    print("Iniciando Algoritmo Genético...")
+    print("Cidades:", qtd_cidades)
+    print("População:", tamanho)
+    print("Máximo de gerações:", max_geracoes)
+    print("Distância da Força Bruta:", DISTANCIA_FORCA_BRUTA)
+
     inicio = time.perf_counter()
 
-    melhor_rota, menor_distancia = executar_ag(
-        matriz, qtd_cidades, tamanho, geracoes,
-        taxa_cruzamento, taxa_mutacao
+    melhor_rota, menor_distancia, geracoes_executadas = executar_ag(
+        matriz,
+        qtd_cidades,
+        tamanho,
+        max_geracoes,
+        taxa_cruzamento,
+        taxa_mutacao
     )
 
     tempo_segundos = time.perf_counter() - inicio
 
-    # Adicionar o retorno à cidade inicial
+    # Adicionar retorno à cidade inicial
     rota_ids = [int(cidade) for cidade in melhor_rota]
     rota_ids.append(rota_ids[0])
 
     # Verificar se todas as cidades foram visitadas
-    assert sorted(rota_ids[:-1]) == list(range(1, qtd_cidades + 1))
+    assert sorted(rota_ids[:-1]) == list(
+        range(1, qtd_cidades + 1)
+    )
+
+    # Verificar se alcançou a distância da Força Bruta
+    encontrou_otimo = (
+        menor_distancia <=
+        DISTANCIA_FORCA_BRUTA + TOLERANCIA
+    )
+
+    if encontrou_otimo:
+        motivo_parada = "Distância da Força Bruta alcançada"
+    else:
+        motivo_parada = "Limite máximo de gerações atingido"
 
     # Preparar resultado em JSON
     resultado = {
@@ -166,11 +271,14 @@ if __name__ == "__main__":
         "matriz_sha256": matriz_sha256,
         "rota_ids": rota_ids,
         "distancia_km": float(menor_distancia),
+        "distancia_forca_bruta_km": DISTANCIA_FORCA_BRUTA,
+        "encontrou_otimo": bool(encontrou_otimo),
+        "geracoes_executadas": geracoes_executadas,
+        "motivo_parada": motivo_parada,
         "tempo_segundos": tempo_segundos,
-        "semente": semente,
         "parametros": {
             "populacao": tamanho,
-            "geracoes": geracoes,
+            "max_geracoes": max_geracoes,
             "taxa_cruzamento": taxa_cruzamento,
             "taxa_mutacao": taxa_mutacao
         },
@@ -180,17 +288,30 @@ if __name__ == "__main__":
         }
     }
 
-    # Salvar o resultado
-    pasta_resultados = Path(__file__).resolve().parent.parent / "resultados"
+    # Salvar resultado
+    pasta_resultados = (
+        Path(__file__).resolve().parent.parent / "resultados"
+    )
+
     pasta_resultados.mkdir(exist_ok=True)
 
     caminho = pasta_resultados / "ag_15_prefeituras.json"
 
     with caminho.open("w", encoding="utf-8") as arquivo:
-        json.dump(resultado, arquivo, ensure_ascii=False, indent=2)
+        json.dump(
+            resultado,
+            arquivo,
+            ensure_ascii=False,
+            indent=2
+        )
 
-    print("Melhor rota:", rota_ids)
-    print("Menor distância (km):", menor_distancia)
+    print("\n========== RESULTADO FINAL ==========")
+    print("Melhor rota AG:", rota_ids)
+    print("Distância AG (km):", menor_distancia)
+    print("Distância Força Bruta (km):", DISTANCIA_FORCA_BRUTA)
+    print("Encontrou a distância ótima:", encontrou_otimo)
+    print("Gerações executadas:", geracoes_executadas)
+    print("Motivo da parada:", motivo_parada)
     print("SHA-256 da matriz:", matriz_sha256)
     print("Tempo (s):", tempo_segundos)
     print("Resultado salvo em:", caminho)
