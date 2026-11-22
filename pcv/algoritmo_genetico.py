@@ -133,7 +133,7 @@ def executar_ag(matriz, qtd_cidades, tamanho, geracoes,
 if __name__ == "__main__":
     qtd_cidades = 15
     tamanho = 100
-    geracoes = 200
+    geracoes = 1000
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.1
     semente = 42
