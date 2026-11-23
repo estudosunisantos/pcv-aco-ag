@@ -1,0 +1,55 @@
+{
+  "algoritmo": "Ant-Q",
+  "n": 10,
+  "matriz_sha256": "caaecf3f24f62b7f3bec30242b9c546dc94a9638eae41e49047e82b858ecaa5e",
+  "rota_ids": [
+    1,
+    4,
+    6,
+    2,
+    7,
+    5,
+    9,
+    10,
+    8,
+    3,
+    1
+  ],
+  "distancia_km": 34.90190792262401,
+  "tempo_segundos": 0.18852819099993212,
+  "semente": 1,
+  "parametros": {
+    "iteracoes": 500,
+    "agentes": 10,
+    "delta": 1.0,
+    "beta": 2.0,
+    "q0": 0.9,
+    "alpha": 0.1,
+    "gamma": 0.4,
+    "W": 10.0,
+    "reforco": "iteration-best",
+    "execucoes_estatisticas": 30,
+    "media_distancia_km": 34.90190792262401,
+    "desvio_padrao_km": 0.0,
+    "pior_distancia_km": 34.90190792262401,
+    "tempo_medio_segundos": 0.1447171132666881
+  },
+  "ambiente": {
+    "sistema": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.18",
+    "processador": "x86_64"
+  },
+  "rota_municipios": [
+    "Atenas",
+    "Dafni-Ymittos",
+    "Ilioupoli",
+    "Vyronas",
+    "Kaisariani",
+    "Zografou",
+    "Agia Paraskevi",
+    "Amarousio",
+    "Filadelfeia-Chalkidona",
+    "Galatsi",
+    "Atenas"
+  ]
+}
