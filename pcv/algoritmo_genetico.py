@@ -207,7 +207,7 @@ if __name__ == "__main__":
     max_geracoes = 2000
     taxa_cruzamento = 0.8
     taxa_mutacao = 0.2
-    taxa_elitismo = 0.20
+    taxa_elitismo = 0.30
 
     matriz, matriz_sha256 = carregar(qtd_cidades)
 
